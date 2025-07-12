@@ -98,6 +98,59 @@ This will guide you through an interactive process to:
 
 #### Physical Testing Workflow
 
+The physical testing workflow involves generating adversarial PDFs, printing them, photographing the printed documents, and testing how well AI models can interpret these images.
+
+```bash
+# Run the complete physical testing workflow
+./run_physical_attack_test.sh
+
+# Or specify options
+./run_physical_attack_test.sh --template=ex1_shorter.tex --pdf-dir=attack_pdfs_0712 --model=gemma3:4b --img-dir=attack_images_0712
+```
+
+##### Step 1: Generate Adversarial PDFs
+
+The script will:
+
+1. Generate LaTeX files with different adversarial patterns
+2. Compile them into PDFs using `lualatex`
+3. Save all PDFs in the specified output directory (`--pdf-dir`)
+
+The generation process uses your template (`--template`) and applies multiple attack types, including:
+
+- Watermark-based attacks (mathematical symbols as watermarks)
+- Texture-based attacks (wave patterns, line textures)
+- Layout manipulation (kerning and spacing adjustments)
+- Font manipulation (symbol swaps, specialized math fonts)
+- Combined attacks (multiple techniques simultaneously)
+
+##### Step 2: Physical Testing Process
+
+After generating the PDFs:
+
+1. **Print the PDFs**: Print the generated PDFs from the output directory
+2. **Photograph the printed exams**: Take clear photos under good lighting conditions
+3. **Transfer photos to your computer**: Move the images to your local machine
+4. **Place photos in the image directory**: Put them in the directory specified by `--img-dir`
+5. **Name photos appropriately**: For easier analysis, name them corresponding to the attack type (e.g., `photo_baseline_clean.jpg`, `photo_O2_optimized_texture.jpg`)
+
+The script will prompt you when it's time to upload your photos.
+
+##### Step 3: Test Uploaded Images
+
+The script automatically tests your uploaded images against the specified AI model and analyzes the results, producing:
+
+- `physical_test_results.jsonl`: Raw test data
+- `physical_attack_detailed_results.csv`: Detailed effectiveness data
+- `physical_attack_effectiveness.png`: Chart showing attack effectiveness
+- `physical_attack_by_prompt_type.png`: Analysis by prompt type
+
+##### Troubleshooting Physical Testing
+
+- **PDFs only show one problem**: Ensure your template is properly loaded and the output directory is correct
+- **Missing PDFs**: Ensure `lualatex` is installed and in your PATH
+- **Image testing fails**: Verify image format is JPG, JPEG, or PNG and the images are clear and legible
+
 ```bash
 # Generate PDFs, guide through physical testing, and analyze results
 ./run_physical_attack_test.sh --model="gemma3:4b"
@@ -131,6 +184,7 @@ Each attack can be configured with different intensity levels:
 ## File Organization
 
 ### Original Framework
+
 - **ex0.tex:** Original template with simple calculus problem
 - **ex1.tex:** Enhanced template with diverse math problems
 - **generalized_attack.py:** Context-aware attack framework
@@ -141,6 +195,7 @@ Each attack can be configured with different intensity levels:
 - **run_generalized_experiment.py:** Experiment orchestration
 
 ### New Tools and Research
+
 - **exam_attack_v3.py:** Enhanced attack implementation with new techniques
 - **run_experiment_v3.py:** Improved experiment orchestration
 - **run_top_attacks.py:** Script to run only the most effective attacks
