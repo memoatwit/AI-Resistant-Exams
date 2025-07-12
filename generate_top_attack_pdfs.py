@@ -91,7 +91,9 @@ def generate_attack_pdfs(template_path='exam_template.tex', output_dir='attack_p
         
         try:
             # Create the attack variant
-            variant_filename = f"{output_dir}/variant_{attack['name']}.tex"
+            # Make sure we don't add .tex twice
+            attack_name_clean = attack['name'].replace('.tex', '')
+            variant_filename = f"{output_dir}/variant_{attack_name_clean}.tex"
             pdf_path = os.path.splitext(variant_filename)[0] + ".pdf"
             
             if attack['type'] == 'none':
@@ -105,14 +107,13 @@ def generate_attack_pdfs(template_path='exam_template.tex', output_dir='attack_p
                 # Create the attack variant
                 create_exam_variant(
                     template_path=template_path,
-                    output_path=variant_filename,
-                    attack_config=attack,
-                    context_level=2
+                    output_name=variant_filename,
+                    attack_params=attack
                 )
             
             # Compile the LaTeX file
             print(f"Compiling {variant_filename}...")
-            compile_cmd = f"pdflatex -interaction=nonstopmode -output-directory={output_dir} {variant_filename}"
+            compile_cmd = f"lualatex -interaction=nonstopmode -output-directory={output_dir} {variant_filename}"
             os.system(compile_cmd)
             
             # Run twice for proper cross-references

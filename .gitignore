@@ -1,0 +1,96 @@
+# Generated files
+*.pdf
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.dvi
+
+# Log files
+*.jsonl
+*.bak
+
+# Results directories
+attack_pdfs*/
+test_fix_output/
+test_pdf_output/
+
+# Generated LaTeX variants
+gen_variant_*.tex
+variant_*.tex
+test_variant_*.tex
+
+# Results files
+results_*.txt
+
+# Analysis outputs
+attack_detailed_results.csv
+attack_effectiveness*.png
+attack_type_effectiveness.png
+model_effectiveness_heatmap.png
+model_vulnerability.png
+prompt_comparison.png
+prompt_effectiveness_heatmap.png
+top_attacks_*.png
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Exam content directories
+CoF*/
+CoFAI*/
+
+# Web UI related
+.webui_secret_key
+
+# Temporary test files
+temp_*.png
+test_*.js
+
+# Documentation files (keep only essential ones)
+generalized_attack_*.md
+next_steps_research.md

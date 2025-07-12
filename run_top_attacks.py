@@ -9,6 +9,7 @@ import os
 import json
 import argparse
 import sys
+import shutil
 from datetime import datetime
 
 # Try to import the required modules
@@ -29,7 +30,8 @@ except ImportError:
 
 def run_top_attacks(template_path='exam_template.tex', 
                    log_file='top_attacks_results.jsonl',
-                   model_name='gemma3:4b'):
+                   model_name='gemma3:4b',
+                   output_dir='attack_pdfs_0712'):
     """
     Run the top 10 most effective attacks based on previous experiment results.
     
@@ -37,7 +39,12 @@ def run_top_attacks(template_path='exam_template.tex',
         template_path (str): Path to the LaTeX template file to use as a base
         log_file (str): Path where the experiment results will be logged in JSONL format
         model_name (str): Name of the AI model to test against
+        output_dir (str): Directory to store output PDFs
     """
+    # Create output directory if it doesn't exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        
     # Define the top 10 attacks based on effectiveness
     top_attacks = [
         # Attacks that performed best for "solving" prompt type
@@ -69,7 +76,7 @@ def run_top_attacks(template_path='exam_template.tex',
          'params': {'target_type': 'operators', 'font_style': '\\mathfrak'}},
         
         {'name': 'O2_optimized_texture', 'type': 'texture', 
-         'params': {'pattern': 'grid', 'color': 'gray!12', 'density': 0.5, 'line_width': 0.2}},
+         'params': {'pattern': 'grid', 'color': 'gray!40', 'density': 0.6, 'line_width': 0.4}},
         
         # Attacks that had some positive effectiveness
         {'name': 'OPT21_texture_tuned', 'type': 'texture', 
@@ -99,6 +106,7 @@ def run_top_attacks(template_path='exam_template.tex',
     print(f"Using template: {template_path}")
     print(f"Using model: {model_name}")
     print(f"Results will be logged to: {log_file}")
+    print(f"PDFs will be saved to: {output_dir}")
     
     # Define prompt types to test
     prompt_types = [
@@ -113,7 +121,7 @@ def run_top_attacks(template_path='exam_template.tex',
         
         try:
             # Create the attack variant
-            variant_filename = f"variant_{attack['name']}.tex"
+            variant_filename = os.path.join(output_dir, f"variant_{attack['name']}.tex")
             pdf_path = os.path.splitext(variant_filename)[0] + ".pdf"
             
             if attack['type'] == 'none':
@@ -127,14 +135,38 @@ def run_top_attacks(template_path='exam_template.tex',
                 # Create the attack variant
                 create_exam_variant(
                     template_path=template_path,
-                    output_path=variant_filename,
-                    attack_config=attack,
-                    context_level=2
+                    output_name=variant_filename,
+                    attack_params=attack
                 )
             
-            # Compile the LaTeX file
+            # Copy all resource directories needed for figures
+            dirname = os.path.dirname(template_path)
+            if dirname != output_dir and dirname != '':
+                # List of possible resource directories used in templates
+                resource_dirs = [
+                    "CoF AI paper exam 4 (Discrete math)",
+                    "CoF AI paper exam 2 (Multivariable calculus)",
+                    "CoF AI paper exam 3 (Complex analysis)",
+                    "CoF AI paper exam"
+                ]
+                
+                for resource_dir in resource_dirs:
+                    src_dir = os.path.join(os.path.abspath(dirname or '.'), resource_dir)
+                    dst_dir = os.path.join(os.path.abspath(output_dir), resource_dir)
+                    
+                    if os.path.exists(src_dir) and not os.path.exists(dst_dir):
+                        print(f"Creating symbolic link from {src_dir} to {dst_dir}")
+                        try:
+                            os.symlink(src_dir, dst_dir)
+                        except OSError as e:
+                            # If symlink fails (e.g. on some Windows systems), try copying
+                            print(f"Symlink failed: {e}. Attempting to copy directory.")
+                            if os.path.isdir(src_dir):
+                                shutil.copytree(src_dir, dst_dir)
+            
+            # Compile the LaTeX file with output directory specified
             print(f"Compiling {variant_filename}...")
-            os.system(f"pdflatex -interaction=nonstopmode {variant_filename}")
+            os.system(f"lualatex -interaction=nonstopmode -output-directory={output_dir} {variant_filename}")
             
             if not os.path.exists(pdf_path):
                 print(f"Error: Failed to create PDF for {variant_filename}")
@@ -179,6 +211,7 @@ def run_top_attacks(template_path='exam_template.tex',
     
     print("\nAll attacks completed!")
     print(f"Results have been logged to {log_file}")
+    print(f"PDFs have been saved to {output_dir}")
     print("To analyze results, run analyze_overnight_detailed.py on the log file.")
 
 if __name__ == "__main__":
@@ -189,6 +222,8 @@ if __name__ == "__main__":
                         help='Path to the output log file')
     parser.add_argument('--model', type=str, default='gemma3:4b',
                         help='AI model to use for testing')
+    parser.add_argument('--output-dir', type=str, default='attack_pdfs_0712',
+                        help='Directory to store output PDFs')
     
     args = parser.parse_args()
     
@@ -198,5 +233,6 @@ if __name__ == "__main__":
         run_top_attacks(
             template_path=args.template,
             log_file=args.log_file,
-            model_name=args.model
+            model_name=args.model,
+            output_dir=args.output_dir
         )

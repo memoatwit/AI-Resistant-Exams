@@ -6,8 +6,8 @@
 # Set default values
 TEMPLATE="exam_template.tex"
 MODEL="gemma3:4b"
-PDF_DIR="attack_pdfs"
-IMG_DIR="attack_images"
+PDF_DIR="attack_pdfs_0712"
+IMG_DIR="attack_images_0712"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -37,7 +37,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Make scripts executable if needed
-chmod +x generate_top_attack_pdfs.py
+chmod +x run_top_attacks.py
+chmod +x fix_and_compile_pdfs.sh
 chmod +x test_uploaded_images.py
 chmod +x analyze_top_attacks.py
 
@@ -51,7 +52,11 @@ echo "Using template: $TEMPLATE"
 echo "Output directory: $PDF_DIR"
 echo "========================================"
 
-python generate_top_attack_pdfs.py --template "$TEMPLATE" --output-dir "$PDF_DIR"
+# First generate the LaTeX files using the new script
+python run_top_attacks.py --template "$TEMPLATE" --output-dir "$PDF_DIR" --log-file "${PDF_DIR}/results.jsonl"
+
+# Then compile the PDFs using the fix script
+./fix_and_compile_pdfs.sh --pdf-dir="$PDF_DIR" --template="$TEMPLATE"
 
 # Check if the PDF generation was successful
 if [ $? -ne 0 ]; then

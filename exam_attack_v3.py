@@ -67,6 +67,8 @@ def get_preamble_code(attack_params: dict) -> str:
         density = params.get('density', 0.7)
         color = params.get('color', 'gray!10')
         step = 2.0 / density if density > 0 else 2.0
+        line_width = params.get('line_width', 'thin')
+        
         if pattern == 'dots':
             code += fr"""
 \AddToShipoutPictureBG{{%
@@ -93,6 +95,13 @@ def get_preamble_code(attack_params: dict) -> str:
     \foreach \i in {{0,1,...,20}} {{
       \draw[{color}, thin] plot[domain=0:20, samples=100, smooth] (\x, {{\i*{step} + 0.1*sin(90*\x)}});
     }}
+  \end{{tikzpicture}}%
+}}"""
+        elif pattern == 'grid':
+            code += fr"""
+\AddToShipoutPictureBG{{%
+  \begin{{tikzpicture}}[remember picture, overlay]
+    \draw[{color}, line width={line_width}pt, step={step}cm] (0,0) grid (20,28);
   \end{{tikzpicture}}%
 }}"""
 
@@ -177,10 +186,20 @@ def create_exam_variant(template_path: str, output_name: str, attack_params: dic
     with open(template_path, 'r') as f:
         template_content = f.read()
 
+    # Ensure we're using the entire template file content
+    print(f"Template file {template_path} loaded, size: {len(template_content)} bytes")
+    print(f"Template starts with: {template_content[:50]}...")
+    print(f"Template ends with: {template_content[-50:]}...")
+    
     preamble_mods = ""
     modified_content = template_content
     attack_type = attack_params.get('type', 'none')
 
+    # Handle output directory correctly
+    output_dir = os.path.dirname(output_name)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
     if attack_type == 'combo':
         params = attack_params.get('params', {})
         sub_attacks = params.get('sub_attacks', [])
@@ -214,8 +233,17 @@ def create_exam_variant(template_path: str, output_name: str, attack_params: dic
     if not os.path.exists(lualatex_path):
         print(f"Warning: LuaLaTeX not found at {lualatex_path}. Compilation may fail.")
     
+    # Set output directory if it exists
+    output_dir = os.path.dirname(variant_tex_path)
+    compile_command = [lualatex_path, '-interaction=nonstopmode']
+    
+    if output_dir:
+        compile_command.extend(['-output-directory', output_dir])
+    
+    compile_command.append(variant_tex_path)
+    
     process = subprocess.run(
-        [lualatex_path, '-interaction=nonstopmode', variant_tex_path],
+        compile_command,
         capture_output=True, text=True
     )
 
